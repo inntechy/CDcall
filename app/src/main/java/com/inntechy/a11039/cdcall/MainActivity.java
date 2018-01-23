@@ -36,6 +36,7 @@ import static com.inntechy.a11039.cdcall.secToTime.timeEx;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     public Calls ones = new Calls();
+    private Cursor mainCursor;
 
     /*REQUEST CODE FIELD*/
     final int REQUEST_CODE_READ_CONTACTS = 111;
@@ -113,10 +114,10 @@ public class MainActivity extends AppCompatActivity {
             case 1:
                 if (resultCode == RESULT_OK) {
                     Uri contactData = data.getData();
-                    Cursor cursor = managedQuery(contactData, null, null, null,
+                    mainCursor = managedQuery(contactData, null, null, null,
                             null);
-                    cursor.moveToFirst();
-                    this.getContactInfo(cursor);
+                    mainCursor.moveToFirst();
+                    this.getContactInfo(mainCursor);
                     this.getRecoder(ones.getNumber());
                     result.setText("所选联系人为：" + ones.getName() + "|" + ones.getNumber());
                 }

@@ -11,6 +11,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -65,8 +66,9 @@ public class ShareActivity extends AppCompatActivity {
         wordChangeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new AlertDialog.Builder(ShareActivity.this).setTitle("悄悄话")
-                        .setView(et)
+                destoryView(et);
+                final AlertDialog.Builder builder = new AlertDialog.Builder(ShareActivity.this).setTitle("悄悄话");
+                        builder.setView(et)
                         .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 String input = et.getText().toString();
@@ -86,7 +88,15 @@ public class ShareActivity extends AppCompatActivity {
                         })
                         .setNegativeButton("取消", null)
                         .show();
+
             }
         });
+    }
+
+    private void destoryView(View view) {
+        ViewGroup parent = (ViewGroup) view.getParent();
+        if (parent != null) {
+            parent.removeAllViews();
+        }
     }
 }
