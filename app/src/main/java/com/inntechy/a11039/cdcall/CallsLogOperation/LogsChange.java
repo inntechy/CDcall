@@ -5,4 +5,5 @@ package com.inntechy.a11039.cdcall.CallsLogOperation;
  */
 
 public class LogsChange {
+    //????
 }
