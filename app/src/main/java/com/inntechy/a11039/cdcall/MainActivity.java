@@ -127,7 +127,13 @@ public class MainActivity extends AppCompatActivity {
                     this.getContactInfo(mainCursor);
                     this.getRecoder(ones.getNumber());
                     result.setText("所选联系人为：" + ones.getName() + "|" + ones.getNumber());
-                    drawPieView(ones);
+                    TextView tip = (TextView) findViewById(R.id.tipText);
+                    String str = tip.getText().toString();
+                    if(!str.equals("无记录")){
+                        drawPieView(ones);
+                    }else{
+                     mAnimatedPieView.setVisibility(View.GONE);
+                    }
                 }
                 break;
             default:
