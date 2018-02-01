@@ -1,6 +1,7 @@
 package com.inntechy.a11039.cdcall;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -29,6 +30,10 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.razerdp.widget.animatedpieview.AnimatedPieView;
+import com.razerdp.widget.animatedpieview.AnimatedPieViewConfig;
+import com.razerdp.widget.animatedpieview.data.SimplePieInfo;
+
 import java.io.ByteArrayOutputStream;
 
 import static com.inntechy.a11039.cdcall.secToTime.timeEx;
@@ -37,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     public Calls ones = new Calls();
     private Cursor mainCursor;
+    private AnimatedPieView mAnimatedPieView;
 
     /*REQUEST CODE FIELD*/
     final int REQUEST_CODE_READ_CONTACTS = 111;
@@ -75,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
         //拨打电话
         Button callBtn = (Button) findViewById(R.id.callBtn);
         callBtn.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("MissingPermission")
             @Override
             public void onClick(View view) {
                 if (ones.getNumber()!=null) {
@@ -104,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.ECLAIR)
+    @RequiresApi(api = 23)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(TAG, "onActivityResult: success");
@@ -120,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
                     this.getContactInfo(mainCursor);
                     this.getRecoder(ones.getNumber());
                     result.setText("所选联系人为：" + ones.getName() + "|" + ones.getNumber());
+                    drawPieView(ones);
                 }
                 break;
             default:
@@ -128,8 +136,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.ECLAIR)
+    //获得联系人信息
     private void getContactInfo(Cursor cursor) {
-        //获得联系人信息
         int phoneColumn = cursor
                 .getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER);
         int phoneNum = cursor.getInt(phoneColumn);
@@ -163,8 +171,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //获得通讯记录
     private void getRecoder(String number) {
-        //获得通讯记录
         int x = 0, y = 0, z = 0, w = 0;//呼入、呼出、未接、拒接次数
         int xtime = 0, ytime = 0;//对应的通话时间
         int count = 0;
@@ -218,6 +226,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //生成pie view
+    //https://github.com/razerdp/AnimatedPieView
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void drawPieView(Calls ones){
+        mAnimatedPieView = (AnimatedPieView) findViewById(R.id.pieview);
+        AnimatedPieViewConfig config = new AnimatedPieViewConfig();
+        config.setStartAngle(-90)// 起始角度偏移
+                .addData(new SimplePieInfo(ones.getMissedCount(), getColor(R.color.rainbow_blue), "未接"))//数据（实现IPieInfo接口的bean）
+                .addData(new SimplePieInfo(ones.getRefuesdCount(), getColor(R.color.rainbow_green), "拒接"))
+                .addData(new SimplePieInfo(ones.getIncomingCount(), getColor(R.color.rainbow_orange), "已接"))
+                .addData(new SimplePieInfo(ones.getOutcomingCount(), getColor(R.color.rainbow_purple), "呼出"))
+                //...(尽管addData吧)
+                .setTextSize(48)
+                .setTextLineStrokeWidth(4)// 设置描述文字的指示线宽度
+                .setTextLineTransitionLength(50)// 设置描述文字的指示线折角处长度
+                .setDirectText(true)// 设置描述文字是否统一方向
+                .setDuration(2000);// 持续时间
+        mAnimatedPieView.applyConfig(config);
+        mAnimatedPieView.start();
+    }
+
+    //获取权限
     private void requestContactPermission() {
         if(Build.VERSION.SDK_INT>=23) {
             //动态权限申请
@@ -243,6 +273,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //获取权限的返回结果
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -288,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
+    //没有权限时
     private void permissionDialog() {
         AlertDialog.Builder permissionDialog = new AlertDialog.Builder(MainActivity.this);
         permissionDialog.setTitle("警告");
@@ -309,6 +340,7 @@ public class MainActivity extends AppCompatActivity {
         permissionDialog.show();
     };
 
+    //xzing二维码转换所需
     private byte[] Bitmap2Bytes(Bitmap bm){
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bm.compress(Bitmap.CompressFormat.PNG, 100, baos);
