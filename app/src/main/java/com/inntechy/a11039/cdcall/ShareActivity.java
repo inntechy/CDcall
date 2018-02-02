@@ -17,6 +17,9 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+
 import java.io.File;
 
 public class ShareActivity extends AppCompatActivity {
@@ -62,16 +65,22 @@ public class ShareActivity extends AppCompatActivity {
         });
 
         Button wordChangeBtn = (Button) findViewById(R.id.words_changeBtn);
-        final EditText et = new EditText(this);
         wordChangeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                destoryView(et);
-                final AlertDialog.Builder builder = new AlertDialog.Builder(ShareActivity.this).setTitle("悄悄话");
-                        builder.setView(et)
-                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                String input = et.getText().toString();
+                final QMUIDialog.EditTextDialogBuilder mbuilder = new QMUIDialog.EditTextDialogBuilder(ShareActivity.this);
+                mbuilder.getEditText().setHint("悄悄话会被保存到二维码中");
+                mbuilder.setTitle("悄悄话")
+                        .addAction("取消", new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .addAction("确定", new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                String input = mbuilder.getEditText().getText().toString();
                                 if (input.equals("")) {
                                     Toast.makeText(getApplicationContext(), "悄悄话不能为空！" + input, Toast.LENGTH_LONG).show();
                                 }
@@ -84,11 +93,10 @@ public class ShareActivity extends AppCompatActivity {
                                     BitmapDrawable bmpDraw=new BitmapDrawable(qrcodeBitmap);
                                     ImgView.setImageDrawable(bmpDraw);
                                 }
+                                dialog.dismiss();
                             }
                         })
-                        .setNegativeButton("取消", null)
                         .show();
-
             }
         });
     }

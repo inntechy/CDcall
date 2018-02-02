@@ -7,8 +7,8 @@ android {
         applicationId "com.inntechy.a11039.cdcall"
         minSdkVersion 23
         targetSdkVersion 26
-        versionCode 5
-        versionName '1.0.5'
+        versionCode 6
+        versionName '1.0.6'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -36,4 +36,6 @@ dependencies {
     //for pieview
     compile 'com.github.razerdp:AnimatedPieView:1.1.4'
     testCompile 'junit:junit:4.12'
+    //QMUI
+    implementation 'com.qmuiteam:qmui:1.0.6'
 }

@@ -8,7 +8,8 @@ import java.io.Serializable;
 
 public class Calls implements Serializable {
 
-    private String id;
+    private String photoid;
+    private byte[] photo;
     private String name; // 名称
     private String number; // 号码
     private String date; // 日期
@@ -68,12 +69,18 @@ public class Calls implements Serializable {
         this.refuesdCount = refuesdCount;
     }
 
-    public String getId() {
-        return id;
+    public byte[] getPhoto() {return photo;}
+
+    public void setPhoto(byte[] photo) {
+        this.photo = photo;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public String getPhotoid() {
+        return photoid;
+    }
+
+    public void setPhotoid(String id) {
+        this.photoid = id;
     }
 
     public String getName() {

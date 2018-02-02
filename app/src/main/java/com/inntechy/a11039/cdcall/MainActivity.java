@@ -28,13 +28,16 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton;
 import com.razerdp.widget.animatedpieview.AnimatedPieView;
 import com.razerdp.widget.animatedpieview.AnimatedPieViewConfig;
 import com.razerdp.widget.animatedpieview.data.SimplePieInfo;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
 import static com.inntechy.a11039.cdcall.secToTime.timeEx;
 
@@ -43,6 +46,11 @@ public class MainActivity extends AppCompatActivity {
     public Calls ones = new Calls();
     private Cursor mainCursor;
     private AnimatedPieView mAnimatedPieView;
+    private QMUIRoundButton pickBtn;
+    private ImageView share_img, person_img;
+    private TextView name_tv, num_tv, center_text, income_count, income_time, outcome_count, outcome_time,
+                     missing_count, refuse_count;
+    private View center_view, main_view, headline;
 
     /*REQUEST CODE FIELD*/
     final int REQUEST_CODE_READ_CONTACTS = 111;
@@ -58,11 +66,36 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Log.d(TAG, "onCreate: ");
 
-        FloatingActionButton pickBtn = (FloatingActionButton) findViewById(R.id.pick);
+        initview();
+        mlistener();
+    }
+
+    //注册控件
+    private void initview(){
+        main_view = (View) findViewById(R.id.main_content);
+        center_view = (View) findViewById(R.id.center_view);
+        headline = (View) findViewById(R.id.headline);
+        pickBtn = (QMUIRoundButton) findViewById(R.id.center_btn);
+        share_img = (ImageView) findViewById(R.id.share_imgview);
+        name_tv = (TextView) findViewById(R.id.person_name);
+        num_tv = (TextView) findViewById(R.id.person_num);
+        center_text = (TextView) findViewById(R.id.center_tip);
+        income_count = (TextView) findViewById(R.id.income_count);
+        income_time = (TextView) findViewById(R.id.income_time);
+        outcome_count = (TextView) findViewById(R.id.outcome_count);
+        outcome_time = (TextView) findViewById(R.id.outcome_time);
+        missing_count = (TextView) findViewById(R.id.missing_count);
+        refuse_count = (TextView) findViewById(R.id.refuse_count);
+        person_img = (ImageView) findViewById(R.id.person_img);
+
+        mAnimatedPieView = (AnimatedPieView) findViewById(R.id.pieview);
+    }
+
+    //监听事件
+    private void mlistener(){
         pickBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //设置Button点击的操作
                 //申请权限
                 requestContactPermission();
                 //判断是否具有所需权限
@@ -78,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        //拨打电话
+        /*//拨打电话
         Button callBtn = (Button) findViewById(R.id.callBtn);
         callBtn.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("MissingPermission")
@@ -89,11 +122,9 @@ public class MainActivity extends AppCompatActivity {
                     MainActivity.this.startActivity(intent);
                 }
             }
-        });
-
+        });*/
         //调用分享activity
-        Button shareBtn = (Button) findViewById(R.id.shareBtn);
-        shareBtn.setOnClickListener(new View.OnClickListener(){
+        share_img.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
 
@@ -108,7 +139,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
     }
 
     @RequiresApi(api = 23)
@@ -116,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(TAG, "onActivityResult: success");
         super.onActivityResult(requestCode, resultCode, data);
-        TextView result = (TextView) findViewById(R.id.result);
         switch (requestCode) {
             case 1:
                 if (resultCode == RESULT_OK) {
@@ -126,14 +155,8 @@ public class MainActivity extends AppCompatActivity {
                     mainCursor.moveToFirst();
                     this.getContactInfo(mainCursor);
                     this.getRecoder(ones.getNumber());
-                    result.setText("所选联系人为：" + ones.getName() + "|" + ones.getNumber());
-                    TextView tip = (TextView) findViewById(R.id.tipText);
-                    String str = tip.getText().toString();
-                    if(!str.equals("无记录")){
-                        drawPieView(ones);
-                    }else{
-                     mAnimatedPieView.setVisibility(View.GONE);
-                    }
+                    this.renewUI(ones);
+                    //result.setText("所选联系人为：" + ones.getName() + "|" + ones.getNumber());
                 }
                 break;
             default:
@@ -165,8 +188,21 @@ public class MainActivity extends AppCompatActivity {
                     ones.setNumber(ones.getNumber().replace("-", "").replace(" ", "").replace("+86",""));
                     ones.setName(phone.getString(phone
                             .getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)));
-                    ones.setId(phone.getString(phone
-                            .getColumnIndex(ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY)));
+                    ones.setPhotoid(phone.getString(phone
+                            .getColumnIndex(ContactsContract.Contacts.PHOTO_ID)));
+                    String[] projection = new String[]
+                            {
+                                    ContactsContract.Data.DATA15
+                            };
+                    String selection = ContactsContract.Data._ID + " = " + ones.getPhotoid();
+                    Cursor cur = getContentResolver().query(
+                            ContactsContract.Data.CONTENT_URI, projection, selection, null, null);
+                    cur.moveToFirst();
+                    if(cur.getCount() > 0){
+                        byte[] contactIcon = cur.getBlob(0);
+                        ones.setPhoto(contactIcon);
+                    }
+                    //以上为头像的获取
                     ones.setCount(phone.getInt(phone
                             .getColumnIndex(ContactsContract.CommonDataKinds.Phone.TIMES_CONTACTED)));
                 }
@@ -184,8 +220,7 @@ public class MainActivity extends AppCompatActivity {
         int count = 0;
         //String nameOfIt = "";
 
-        TextView tip = (TextView) findViewById(R.id.tipText);
-        tip.setText("无记录");
+        center_text.setText("无记录");
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED) {
             permissionDialog();
@@ -216,11 +251,11 @@ public class MainActivity extends AppCompatActivity {
             String ytimeStr = secToTime.timeEx(ytime);
             String totaltimeStr = secToTime.timeEx(xtime+ytime);
             //String str = callLogCr.getString(callLogCr.getColumnIndex(CallLog.Calls.NUMBER));
-            tip.setText("呼入\t" + x + "   \t"+xtimeStr+"\n"+
+            /*tip.setText("呼入\t" + x + "   \t"+xtimeStr+"\n"+
                         "呼出\t" + y + "   \t"+ytimeStr+"\n"+
                         "未接\t" + z + "   \t\n"+
                         "拒接\t" + w + "   \t\n"+
-                        "总次数=" + count);
+                        "总次数=" + count);*/
             ones.setCount(count);
             ones.setIncomingCount(x);
             ones.setOutcomingCount(y);
@@ -236,7 +271,6 @@ public class MainActivity extends AppCompatActivity {
     //https://github.com/razerdp/AnimatedPieView
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void drawPieView(Calls ones){
-        mAnimatedPieView = (AnimatedPieView) findViewById(R.id.pieview);
         AnimatedPieViewConfig config = new AnimatedPieViewConfig();
         config.setStartAngle(-90)// 起始角度偏移
                 .addData(new SimplePieInfo(ones.getMissedCount(), getColor(R.color.rainbow_blue), "未接"))//数据（实现IPieInfo接口的bean）
@@ -339,12 +373,39 @@ public class MainActivity extends AppCompatActivity {
         permissionDialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                TextView tip = (TextView) findViewById(R.id.tipText);
-                tip.setText("权限缺失，无法正常工作");
+                center_text.setText("权限缺失，无法正常工作");
             }
         });
         permissionDialog.show();
     };
+
+    //更新UI
+    private void renewUI(Calls ones){
+        headline.setVisibility(View.VISIBLE);
+        name_tv.setText(ones.getName());
+        num_tv.setText(ones.getNumber());
+        //pic
+        if(ones.getPhoto() != null){
+            Bitmap map = BitmapFactory.decodeByteArray(ones.getPhoto(), 0,ones.getPhoto().length);
+            person_img.setImageBitmap(map);
+        }else{
+            person_img.setImageResource(R.drawable.ic_account_circle_black_24dp);
+        }
+        if(ones.getCount() != 0){
+            center_view.setVisibility(View.GONE);
+            main_view.setVisibility(View.VISIBLE);
+            income_count.setText(""+ones.getIncomingCount());
+            income_time.setText(ones.getIncomingTime());
+            outcome_time.setText(ones.getOutcomingTime());
+            outcome_count.setText(""+ones.getOutcomingCount());
+            missing_count.setText(""+ones.getMissedCount());
+            refuse_count.setText(""+ones.getRefuesdCount());
+            drawPieView(ones);
+        }else{
+            center_view.setVisibility(View.VISIBLE);
+            main_view.setVisibility(View.GONE);
+        }
+    }
 
     //xzing二维码转换所需
     private byte[] Bitmap2Bytes(Bitmap bm){
